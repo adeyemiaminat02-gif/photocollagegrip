@@ -6,7 +6,7 @@ from PIL import Image
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
-# Setup logging
+# Setup logging correctly
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -95,8 +95,8 @@ def main():
     app.add_handler(CommandHandler("collage", make_collage))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
 
-    # Start long polling
-    logger.getLogger().info("Bot started via Long Polling...")
+    # Start long polling (Fixed logging statement)
+    logger.info("Bot started via Long Polling...")
     app.run_polling()
 
 if __name__ == '__main__':
