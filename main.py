@@ -1,12 +1,13 @@
 import os
 import io
 import logging
+import asyncio
 from collections import defaultdict
 from PIL import Image
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
-# Setup logging correctly
+# Setup logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -80,7 +81,7 @@ async def make_collage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Send back to Telegram
     await update.message.reply_photo(photo=output_buffer, caption="🎉 Here is your collage grid!")
 
-def main():
+async def main():
     # Token pulled from environment variable
     TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     if not TOKEN:
@@ -95,9 +96,25 @@ def main():
     app.add_handler(CommandHandler("collage", make_collage))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
 
-    # Start long polling (Fixed logging statement)
-    logger.info("Bot started via Long Polling...")
-    app.run_polling()
+    # Initialize and start the application manually to bypass standard run_polling loop rules
+    await app.initialize()
+    await app.updater.start_polling()
+    await app.start()
+    
+    logger.info("Bot successfully started via Long Polling on Python 3.14! Press Ctrl+C to stop.")
+    
+    # Keep running until interrupted
+    try:
+        while True:
+            await asyncio.sleep(3600)
+    except (KeyboardInterrupt, SystemExit):
+        pass
+    finally:
+        # Graceful shutdown sequence
+        await app.updater.stop()
+        await app.stop()
+        await app.shutdown()
 
 if __name__ == '__main__':
-    main()
+    # Explicitly create and run within a clean loop environment
+    asyncio.run(main())
